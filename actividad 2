@@ -1,0 +1,91 @@
+// activida2.cpp : Este archivo contiene la función "main". La ejecución del programa comienza y termina ahí.
+//
+
+// Sqltestfirstattempt.cpp : Este archivo contiene la función "main". La ejecución del programa comienza y termina ahí.
+//
+#include <windows.h>
+#include <sql.h>
+#include <sqlext.h>
+#include <iostream>
+
+using namespace std;
+
+int main() {
+    SQLHENV hEnv;
+    SQLHDBC hDbc;
+    SQLRETURN ret;
+
+    // Allocate an environment handle
+    ret = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &hEnv);
+    ret = SQLSetEnvAttr(hEnv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER)SQL_OV_ODBC3, 0);
+
+    // Allocate a connection handle
+    ret = SQLAllocHandle(SQL_HANDLE_DBC, hEnv, &hDbc);
+
+    // Connect to the database
+    ret = SQLConnect(hDbc, (SQLWCHAR*)L"actividad", SQL_NTS, (SQLWCHAR*)L"Username", SQL_NTS, (SQLWCHAR*)L"Password", SQL_NTS);
+
+    if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO) {
+        cout << "Connected to database successfully." << endl;
+
+        // Example of executing a query
+        SQLHSTMT hStmt;
+        ret = SQLAllocHandle(SQL_HANDLE_STMT, hDbc, &hStmt);
+
+        // Example SELECT query
+        ret = SQLExecDirect(hStmt, (SQLWCHAR*)L"SELECT * FROM Empleados", SQL_NTS);
+        if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO) {
+            SQLCHAR NOMBRE[60];
+            SQLCHAR APELLIDO_PATERNO[60];
+            SQLCHAR APELLIDO_MATERNO[60];
+            SQLCHAR FECHA_DE_NACIMIENTO;
+            SQLCHAR RFC[13];
+            SQLCHAR CEBTRO_TRABAJO[100];
+            SQLCHAR PUESTO[50];
+            SQLCHAR DESCRICCION_DEL_PUESTO[50];
+            SQLCHAR DIRECTIVO[100];
+            //int age;
+            while (SQLFetch(hStmt) == SQL_SUCCESS) {
+                SQLGetData(hStmt, 2, SQL_C_CHAR, NOMBRE, sizeof(NOMBRE), NULL);
+                SQLGetData(hStmt, 3, SQL_C_CHAR, APELLIDO_PATERNO, sizeof(APELLIDO_PATERNO), NULL);
+                SQLGetData(hStmt, 4, SQL_C_CHAR, APELLIDO_MATERNO, sizeof(APELLIDO_MATERNO), NULL);
+                SQLGetData(hStmt, 5, SQL_C_CHAR, FECHA_DE_NACIMIENTO, sizeof(FECHA_DE_NACIMIENTO), NULL);
+                SQLGetData(hStmt, 6, SQL_C_CHAR, RFC, sizeof(RFC), NULL);
+                SQLGetData(hStmt, 7, SQL_C_CHAR, CEBTRO_TRABAJO, sizeof(CEBTRO_TRABAJO), NULL);
+                SQLGetData(hStmt, 8, SQL_C_CHAR, PUESTO, sizeof(PUESTO), NULL);
+                SQLGetData(hStmt, 9, SQL_C_CHAR, DESCRICCION_DEL_PUESTO, sizeof(DESCRICCION_DEL_PUESTO), NULL);
+                SQLGetData(hStmt, 10, SQL_C_CHAR, DIRECTIVO, sizeof(DIRECTIVO), NULL);
+                //SQLGetData(hStmt, 2, SQL_C_LONG, &age, 0, NULL);
+                cout << "+--------------------+" << endl;
+                cout << "|       Nombre       |" << endl;
+                cout << "+--------------------+" << endl;
+                cout << NOMBRE << " " << APELLIDO_PATERNO << " " << APELLIDO_MATERNO << endl; 
+                cout << "+--------------------+" << endl;
+
+            }
+        }
+
+        // Free statement handle
+        SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
+    }
+    else {
+        cout << "Failed to connect to database." << endl;
+    }
+
+    // Disconnect and free handles
+    SQLDisconnect(hDbc);
+    SQLFreeHandle(SQL_HANDLE_DBC, hDbc);
+    SQLFreeHandle(SQL_HANDLE_ENV, hEnv);
+
+    return 0;
+}
+
+// Ejecutar programa: Ctrl + F5 o menú Depurar > Iniciar sin depurar
+// Depurar programa: F5 o menú Depurar > Iniciar depuración
+
+// Sugerencias para primeros pasos: 1. Use la ventana del Explorador de soluciones para agregar y administrar archivos
+//   2. Use la ventana de Team Explorer para conectar con el control de código fuente
+//   3. Use la ventana de salida para ver la salida de compilación y otros mensajes
+//   4. Use la ventana Lista de errores para ver los errores
+//   5. Vaya a Proyecto > Agregar nuevo elemento para crear nuevos archivos de código, o a Proyecto > Agregar elemento existente para agregar archivos de código existentes al proyecto
+//   6. En el futuro, para volver a abrir este proyecto, vaya a Archivo > Abrir > Proyecto y seleccione el archivo .sln
