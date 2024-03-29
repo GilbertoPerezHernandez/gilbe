@@ -1,0 +1,84 @@
+#include <windows.h>
+#include <sql.h>
+#include <sqlext.h>
+#include <iostream>
+#include <iomanip> // Necesario para std::setw
+
+using namespace std;
+
+int main() {
+    SQLHENV hEnv;
+    SQLHDBC hDbc;
+    SQLRETURN ret;
+
+    // Allocate an environment handle
+    ret = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &hEnv);
+    ret = SQLSetEnvAttr(hEnv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER)SQL_OV_ODBC3, 0);
+
+    // Allocate a connection handle
+    ret = SQLAllocHandle(SQL_HANDLE_DBC, hEnv, &hDbc);
+
+    // Connect to the database
+    ret = SQLConnect(hDbc, (SQLWCHAR*)L"actividad", SQL_NTS, (SQLWCHAR*)L"Username", SQL_NTS, (SQLWCHAR*)L"Password", SQL_NTS);
+
+    if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO) {
+        cout << "Connected to database successfully." << endl;
+
+        // Example of executing a query
+        SQLHSTMT hStmt;
+        ret = SQLAllocHandle(SQL_HANDLE_STMT, hDbc, &hStmt);
+
+        // Example SELECT query
+        ret = SQLExecDirect(hStmt, (SQLWCHAR*)L"SELECT * FROM Empleados", SQL_NTS);
+        if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO) {
+            SQLCHAR NOMBRE[60];
+            SQLCHAR APELLIDO_PATERNO[60];
+            SQLCHAR APELLIDO_MATERNO[60];
+            SQLCHAR FECHA_DE_NACIMIENTO[11];
+            SQLCHAR RFC[13];
+            SQLCHAR CEBTRO_TRABAJO[100];
+            SQLCHAR PUESTO[50];
+            SQLCHAR DESCRICCION_DEL_PUESTO[50];
+            SQLCHAR DIRECTIVO[100];
+            int numero_empleado;
+            cout << "+-----------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+            cout << "|   No.Empleado |         Nombre          | Feca de Nac. |       RFC      | Nombre del Centro    |     Puesto  |  Descriccion del puesto   | ¿Es Directivo? |" << endl;
+            cout << "+-----------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+            while (SQLFetch(hStmt) == SQL_SUCCESS) {
+                SQLGetData(hStmt, 1, SQL_C_LONG, &numero_empleado, 0, NULL);
+                SQLGetData(hStmt, 2, SQL_C_CHAR, NOMBRE, sizeof(NOMBRE), NULL);
+                SQLGetData(hStmt, 3, SQL_C_CHAR, APELLIDO_PATERNO, sizeof(APELLIDO_PATERNO), NULL);
+                SQLGetData(hStmt, 4, SQL_C_CHAR, APELLIDO_MATERNO, sizeof(APELLIDO_MATERNO), NULL);
+                SQLGetData(hStmt, 5, SQL_C_CHAR, FECHA_DE_NACIMIENTO, sizeof(FECHA_DE_NACIMIENTO), NULL);
+                SQLGetData(hStmt, 6, SQL_C_CHAR, RFC, sizeof(RFC), NULL);
+                SQLGetData(hStmt, 7, SQL_C_CHAR, CEBTRO_TRABAJO, sizeof(CEBTRO_TRABAJO), NULL);
+                SQLGetData(hStmt, 8, SQL_C_CHAR, PUESTO, sizeof(PUESTO), NULL);
+                SQLGetData(hStmt, 9, SQL_C_CHAR, DESCRICCION_DEL_PUESTO, sizeof(DESCRICCION_DEL_PUESTO), NULL);
+                SQLGetData(hStmt, 10, SQL_C_CHAR, DIRECTIVO, sizeof(DIRECTIVO), NULL);
+
+                cout << "| " << setw(10) << left << numero_empleado
+                    << "| " << setw(11) << left << NOMBRE << " " << setw(8) << left << APELLIDO_PATERNO << " " << setw(8) << left << APELLIDO_MATERNO
+                    << "| " << setw(12) << left << FECHA_DE_NACIMIENTO
+                    << "| " << setw(15) << left << RFC
+                    << "| " << setw(20) << left << CEBTRO_TRABAJO
+                    << "| " << setw(16) << left << PUESTO
+                    << "| " << setw(20) << left << DESCRICCION_DEL_PUESTO
+                    << "| " << setw(30) << left << DIRECTIVO << "|" << endl;
+            }
+            cout << "+-------------------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+        }
+
+        // Free statement handle
+        SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
+    }
+    else {
+        cout << "Failed to connect to database." << endl;
+    }
+
+    // Disconnect and free handles
+    SQLDisconnect(hDbc);
+    SQLFreeHandle(SQL_HANDLE_DBC, hDbc);
+    SQLFreeHandle(SQL_HANDLE_ENV, hEnv);
+
+    return 0;
+}
